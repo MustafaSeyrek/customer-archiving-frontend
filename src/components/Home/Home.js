@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../Navbar/Navbar";
 import axios from "axios";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import "../../index.css";
 import moment from "moment/moment";
 export default function Home() {
   const url = "http://localhost:8080/api/customers";
@@ -26,6 +25,7 @@ export default function Home() {
       const result = await axios.get(url, {
         headers: { Authorization: token },
       });
+
       setCustomers(result.data);
     } catch (err) {
       if (err.response != null) {
@@ -34,12 +34,18 @@ export default function Home() {
         } else {
           setError(err.message);
         }
+      } else {
+        setError(err.message);
       }
     }
   };
 
   const deleteCustomer = async (id) => {
-    await axios.delete(url + "/" + id);
+    await axios.delete(url + "/" + id, {
+      headers: {
+        Authorization: token,
+      },
+    });
     loadCustomers();
   };
 
@@ -48,6 +54,14 @@ export default function Home() {
       <Navbar></Navbar>
       <div className="container">
         <div className="py-4">
+          {error ? (
+            <div className="alert alert-danger" role="alert">
+              {error}
+            </div>
+          ) : (
+            ""
+          )}
+
           <table className="table border shadow">
             <thead>
               <tr>
@@ -55,7 +69,7 @@ export default function Home() {
                 <th scope="col">Full Name</th>
                 <th scope="col">Created By</th>
                 <th scope="col">Created At</th>
-                <th scope="col">Updated By</th>                
+                <th scope="col">Updated By</th>
                 <th scope="col">Updated At</th>
                 <th scope="col">Action</th>
               </tr>
@@ -66,16 +80,18 @@ export default function Home() {
                   <th scope="row">{customer.id}</th>
                   <td>{customer.fullName}</td>
                   <td>{customer.createdBy}</td>
-                  <td>{moment(customer.createdAt).format('DD/MM/YYYY HH:mm')}</td>
-                  <td>{customer.updatedBy}</td>                 
-                  <td>{customer.updatedAt}</td>
                   <td>
-                    <Link
-                      to={`/viewcustomer/${customer.id}`}
-                      className="btn btn-primary mx-2"
-                    >
-                      View
-                    </Link>
+                    {moment(customer.createdAt).format("DD/MM/YYYY HH:mm")}
+                  </td>
+                  <td>
+                    {customer.updatedBy == "" ? "-" : customer.updatedBy}
+                  </td>
+                  <td>
+                    {customer.updatedAt == null
+                      ? "-"
+                      : moment(customer.updatedAt).format("DD/MM/YYYY HH:mm")}
+                  </td>
+                  <td>
                     <Link
                       to={`/editcustomer/${customer.id}`}
                       className="btn btn-outline-primary mx-2"
